@@ -1,0 +1,21 @@
+<h2>Payments</h2>
+    <button routerLink="/payments/add">Add Payment</button>
+<table border="1" width="100%">
+      <tr>
+        <th>Reference</th>
+        <th>Amount</th>
+        <th>Currency</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+      <tr *ngFor="let p of payments">
+        <td>{{ p.reference }}</td>
+        <td>{{ p.amount }}</td>
+        <td>{{ p.currency }}</td>
+        <td>{{ p.createdAt }}</td>
+        <td>
+          <button [routerLink]="['/edit', p.id]">Edit</button>
+          <button (click)="deletePayment(p.id)">Delete</button>
+        </td>
+      </tr>
+    </table>
