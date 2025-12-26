@@ -1,0 +1,27 @@
+# Workspace-level ignores
+# Visual Studio user and workspace files
+**/.vs/
+**/*.suo
+**/*.user
+**/*.userosscache
+**/*.sln.docstates
+
+# Build artifacts
+**/bin/
+**/obj/
+
+# Rider
+.idea/
+
+# npm
+node_modules/
+
+# macOS
+.DS_Store
+
+# Logs
+npm-debug.log
+yarn-error.log
+
+# Angular cache
+**/.angular/cache/

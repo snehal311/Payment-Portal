@@ -1,15 +1,23 @@
-<h2>{{ isEdit ? 'Edit' : 'Add' }} Payment</h2>
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-      <label>Amount</label>
-      <input type="number" formControlName="amount" />
+<div class="payment-form">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="form-row">
+      <label for="amount">Amount</label>
+      <input id="amount" type="number" formControlName="amount" />
+    </div>
 
-      <label>Currency</label>
-      <select formControlName="currency">
+    <div class="form-row">
+      <label for="currency">Currency</label>
+      <select id="currency" formControlName="currency">
         <option value="USD">USD</option>
         <option value="EUR">EUR</option>
         <option value="INR">INR</option>
         <option value="GBP">GBP</option>
       </select>
+    </div>
 
-      <button type="submit">Save</button>
-    </form>
+    <div class="actions">
+      <button type="submit" class="btn primary">Save</button>
+      <button type="button" class="btn cancel" (click)="onCancel()">Cancel</button>
+    </div>
+  </form>
+</div>

@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Payment.API.Data;
-using Payment.API.Models;
+﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Payment.API.DTOs;
+using Payment.API.Services;
 
 namespace Payment.API.Controllers
 {
@@ -11,75 +10,91 @@ namespace Payment.API.Controllers
     [Route("api/[controller]")]
     public class PaymentsController : ControllerBase
     {
-        private readonly PaymentsDBContext _context;
-        public PaymentsController(PaymentsDBContext context)
+        private readonly IPaymentService _service;
+        public PaymentsController(IPaymentService service)
         {
-            _context = context;
+            _service = service;
         }
+
         [HttpPost]
-        public async Task<IActionResult> CreatePayment([FromBody] Models.CreatePaymentRequest request)
+        public IActionResult CreatePayment([FromBody] CreatePaymentRequest request)
         {
-            if (request.Amount <= 0)
-                return BadRequest("Amount must be greater than zero");
-
-            string[] currencies = { "USD", "EUR", "INR", "GBP" };
-            if (!currencies.Contains(request.Currency))
-                return BadRequest("Invalid currency");
-
-            var existing = await _context.Payments
-                .FirstOrDefaultAsync(p => p.ClientRequestId == request.ClientRequestId);
-
-            if (existing != null)
-                return Ok(existing);
-
-            var today = DateTime.UtcNow.Date;
-            var count = await _context.Payments
-                .CountAsync(p => p.CreatedAt.Date == today);
-
-            var payment = new Payment.API.Models.Payment
+            try
             {
-                Id = Guid.NewGuid(),
-                Amount = request.Amount,
-                Currency = request.Currency,
-                ClientRequestId = request.ClientRequestId,
-                CreatedAt = DateTime.UtcNow,
-                Reference = $"PAY-{today:yyyyMMdd}-{(count + 1):D4}"
-            };
-            _context.Payments.Add(payment);
-            await _context.SaveChangesAsync();
-            return Ok(payment);
+                if (request.Amount <= 0)
+                    return BadRequest("Amount must be greater than zero");
+
+                string[] currencies = { "USD", "EUR", "INR", "GBP" };
+                if (!currencies.Contains(request.Currency))
+                    return BadRequest("Invalid currency");
+
+                var payment = _service.Create(request);
+                return Ok(payment);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An error occurred while creating the payment.");
+            }
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public IActionResult Get()
         {
-            var list = await _context.Payments.ToListAsync();
-            return Ok(list);
+            try
+            {
+                var list = _service.GetAll();
+                return Ok(list);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An error occurred while retrieving payments.");
+            }
+        }
+
+        [HttpGet]
+        [Route("{id}")]
+        public IActionResult GetPaymentById(Guid id)
+        {
+            try
+            {
+                var payment = _service.GetById(id);
+                if (payment == null) return NotFound();
+                return Ok(payment);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An error occurred while retrieving the payment.");
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, CreatePaymentRequest request)
+        public IActionResult Update(Guid id, UpdatePaymentRequest request)
         {
-            var payment = await _context.Payments.FindAsync(id);
-            if (payment == null) return NotFound();
+            try
+            {
+                var payment = _service.GetById(id);
+                if (payment == null) return NotFound();
 
-            payment.Amount = request.Amount;
-            payment.Currency = request.Currency;
-            await _context.SaveChangesAsync();
-
-            return Ok(payment);
+                var updated = _service.Update(id, request);
+                return Ok(updated);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An error occurred while updating the payment.");
+            }
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public IActionResult Delete(Guid id)
         {
-            var payment = await _context.Payments.FindAsync(id);
-            if (payment == null) return NotFound();
-
-            _context.Payments.Remove(payment);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            try
+            {
+                return _service.Delete(id) ? NoContent() : NotFound();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An error occurred while deleting the payment.");
+            }
         }
     }
 }

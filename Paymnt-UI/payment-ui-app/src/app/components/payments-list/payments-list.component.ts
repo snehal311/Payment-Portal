@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
 import { PaymentService } from '../../services/payment.service';
 import { Router, RouterModule } from '@angular/router';
-import { CommonModule, DatePipe } from '@angular/common';
+import { NgFor } from '@angular/common';
 import { Payment } from '../../model/payment.model';
 
 @Component({
   selector: 'app-payments-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, DatePipe],
+  imports: [NgFor, RouterModule],
   templateUrl: './payments-list.component.html',
   styleUrls: ['./payments-list.component.css']
 })

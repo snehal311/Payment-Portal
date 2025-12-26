@@ -38,12 +38,20 @@ export class PaymentFormComponent {
         this.isEdit = true;
         this.paymentId = id;
         // load payment data and populate form
-        this.paymentService.getPayment(id).subscribe(payment => {
-          this.form.patchValue({
-            amount: payment.amount,
-            currency: payment.currency
-          });
+        this.paymentService.getPaymentById(id).subscribe({
+          next: payment => {
+            const patch: any = {};
+            if (payment && typeof payment.amount !== 'undefined') patch.amount = payment.amount;
+            if (payment && typeof payment.currency !== 'undefined') patch.currency = payment.currency;
+            this.form.patchValue(patch);
+          },
+          error:(() => {
+            alert('Failed to load payment');
+          })
         });
+      } else {
+        this.isEdit = false;
+        this.paymentId = undefined;
       }
     });
   }
@@ -58,13 +66,27 @@ export class PaymentFormComponent {
     };
 
     if (this.isEdit && this.paymentId) {
-      this.paymentService.updatePayment(this.paymentId, paymentData).subscribe(() => {
-        this.router.navigate(['/payments']);
+      this.paymentService.updatePayment(this.paymentId, paymentData).subscribe({
+        next: () => {
+          this.router.navigate(['/payments']);
+        },
+        error: () => {
+          alert('Error updating payment');
+        }
       });
     } else {
-      this.paymentService.createPayment(paymentData).subscribe(() => {
-        this.router.navigate(['/payments']);
+      this.paymentService.createPayment(paymentData).subscribe({
+        next: () => {
+          this.router.navigate(['/payments']);
+        },
+        error: () => {
+          alert('Error creating payment');
+        }
       });
     }
+  }
+
+  onCancel() {
+    this.router.navigate(['/payments']);
   }
 }
